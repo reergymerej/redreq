@@ -1,5 +1,7 @@
 # Red(ux) Req(uest Helpers and Whatnot)
 
+[![Build Status](https://travis-ci.org/reergymerej/redreq.svg?branch=master)](https://travis-ci.org/reergymerej/redreq)
+
 When performing AJAX calls with Redux, you typically want three actions.
 
 * start the request

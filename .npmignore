@@ -9,3 +9,4 @@ jest*
 sonar*
 src/
 yarn.lock
+*.png
