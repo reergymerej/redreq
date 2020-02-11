@@ -1,6 +1,6 @@
 {
   "name": "redreq",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "lib/index.js",
   "description": "Red(ux) Req(uest Helpers and Whatnot)",
   "keywords": [
@@ -36,8 +36,7 @@
   "directories": {
     "lib": "lib"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/reergymerej/redreq.git"
