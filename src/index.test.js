@@ -130,23 +130,6 @@ describe('getRequestFactories', () => {
   })
 })
 
-describe('coverage!', () => {
-  it('should ?', () => {
-    mod([
-      ['donkey', 'paint'],
-    ])
-  })
-
-  it('should ??', () => {
-    const r = mod([
-      ['donkey', 'paint'],
-    ])
-    const state = {}
-    const action = {}
-    expect(r.reducer(state, action)).toEqual({})
-  })
-})
-
 describe('collectActionTypes ', () => {
   it('should provide dot-notation access to the action types', () => {
     const reducers = [
@@ -214,5 +197,35 @@ describe('getCombinedReducer', () => {
       waitingForSodaCan: false,
       sodaCan: { empty: true },
     })
+  })
+})
+
+describe('main api', () => {
+  it('should expose the action type values', () => {
+    const { action } = mod([
+      ['donkey', 'paint'],
+      ['donkey', 'hug'],
+    ])
+    const reducers = [
+      getRequestReducer('donkey', 'paint'),
+      getRequestReducer('donkey', 'hug'),
+    ]
+    expect(action.type).toEqual(collectActionTypes(reducers).type)
+  })
+
+  it('should return a single reducer', () => {
+    const gold = mod([
+      ['donkey', 'paint'],
+      ['donkey', 'hug'],
+    ])
+    const reducers = [
+      getRequestReducer('donkey', 'paint'),
+      getRequestReducer('donkey', 'hug'),
+    ]
+
+    const state = {}
+    const action = gold.factories.donkey.hug.success({ id: 'happy' })
+    const manuallyRunReducers = reducers.reduce((acc, r) => r(acc, action), state)
+    expect(gold.reducer(state, action)).toEqual(manuallyRunReducers)
   })
 })
