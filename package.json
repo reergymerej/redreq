@@ -32,5 +32,18 @@
     "eslint": "4.18.2",
     "eslint-scope": "^5.0.0",
     "jest": "^24.8.0"
-  }
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/reergymerej/redreq.git"
+  },
+  "bugs": {
+    "url": "https://github.com/reergymerej/redreq/issues"
+  },
+  "homepage": "https://github.com/reergymerej/redreq#readme"
 }

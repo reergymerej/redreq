@@ -120,4 +120,4 @@ export const createIdea = (rawIdea) => {
 }
 ```
 
-![screenshot](./screenshot.png)
+![screenshot](https://raw.githubusercontent.com/reergymerej/redreq/master/screenshot.png)
