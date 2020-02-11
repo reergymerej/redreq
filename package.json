@@ -2,6 +2,14 @@
   "name": "redreq",
   "version": "1.0.0",
   "main": "lib/index.js",
+  "description": "Red(ux) Req(uest Helpers and Whatnot)",
+  "keywords": [
+    "redux",
+    "request",
+    "ajax",
+    "boilerplate",
+    "helper"
+  ],
   "scripts": {
     "start": "./node_modules/@babel/node/bin/babel-node.js src/index.js",
     "test": "jest src --config jest.config.js",
