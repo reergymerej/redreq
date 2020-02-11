@@ -1,27 +1,11 @@
 import mod from '.'
 import {
+  collectActionTypes,
+  getCombinedReducer,
   getLabels,
   getRequestFactories,
   getRequestReducer,
 } from '.'
-
-// These are the entities we will request.
-
-
-xit('should return factories!', () => {
-  const REQUESTS = [
-    [ 'idea', 'create' ],
-    // [ 'idea', 'delete' ],
-    // [ 'idea', 'update' ],
-    // [ 'ideas', 'list' ],
-    // [ 'user', 'create' ],
-    // [ 'user', 'load' ],
-    // [ 'user', 'login' ],
-    // [ 'user', 'logout' ],
-  ]
-  const result = mod(REQUESTS)
-  expect(result).toEqual({})
-})
 
 describe('getLabels', () => {
   it('should throw for missing object', () => {
@@ -160,5 +144,75 @@ describe('coverage!', () => {
     const state = {}
     const action = {}
     expect(r.reducer(state, action)).toEqual({})
+  })
+})
+
+describe('collectActionTypes ', () => {
+  it('should provide dot-notation access to the action types', () => {
+    const reducers = [
+      getRequestReducer('dolphin', 'watch'),
+    ]
+    const { type } = collectActionTypes(reducers)
+    expect(type.dolphin.watch.req).toEqual('dolphin.watch.req')
+    expect(type.dolphin.watch.failure).toEqual('dolphin.watch.error')
+    expect(type.dolphin.watch.success).toEqual('dolphin.watch.success')
+  })
+})
+
+describe('getCombinedReducer', () => {
+  it('should handle request', () => {
+    const labels = {
+      actionTypeRequest: 'soda.can.fetch.request.triggered',
+      stateError: 'sodaCanFetchError',
+      statePending: 'waitingForSodaCan',
+    }
+    const entity = 'sodaCan'
+    const r = getCombinedReducer(labels, entity)
+    const state = {}
+    const action = {
+      type: 'soda.can.fetch.request.triggered',
+    }
+    expect(r(state, action)).toEqual({
+      sodaCan: null,
+      sodaCanFetchError: null,
+      waitingForSodaCan: true,
+    })
+  })
+
+  it('should handle failure', () => {
+    const labels = {
+      actionTypeFailure: 'soda.can.fetch.failedMiserably',
+      stateError: 'sodaCanFetchError',
+      statePending: 'waitingForSodaCan',
+    }
+    const entity = 'sodaCan'
+    const r = getCombinedReducer(labels, entity)
+    const state = {}
+    const action = {
+      type: 'soda.can.fetch.failedMiserably',
+      error: 'unable to find can',
+    }
+    expect(r(state, action)).toEqual({
+      sodaCanFetchError: 'unable to find can',
+      waitingForSodaCan: false,
+    })
+  })
+
+  it('should handle success', () => {
+    const labels = {
+      actionTypeSuccess: 'soda.can.fetch.hooray',
+      statePending: 'waitingForSodaCan',
+    }
+    const entity = 'sodaCan'
+    const r = getCombinedReducer(labels, entity)
+    const state = {}
+    const action = {
+      type: 'soda.can.fetch.hooray',
+      sodaCan: { empty: true },
+    }
+    expect(r(state, action)).toEqual({
+      waitingForSodaCan: false,
+      sodaCan: { empty: true },
+    })
   })
 })

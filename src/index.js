@@ -1,5 +1,3 @@
-/* eslint-disable complexity */
-
 const capitalize = (string) => string.replace(/^.{1,1}/, (x) => x.toUpperCase())
 
 const assert = (x, err) => {
@@ -22,45 +20,57 @@ export const getLabels = (obj, verb) => {
   }
 }
 
-export const getRequestReducer = (obj, verb) => {
-  const labels = getLabels(obj, verb)
+export const getCombinedReducer = (labels, obj) => {
   const {
-    statePending,
-    stateError,
-    actionTypeRequest,
     actionTypeFailure,
+    actionTypeRequest,
     actionTypeSuccess,
+    stateError,
+    statePending,
   } = labels
 
-  const reducer = (state, action) => {
-    switch (action.type) {
-    case actionTypeRequest:
-      return {
+  const req = (state, action) => {
+    return (action.type === actionTypeRequest)
+      ? {
         ...state,
         [stateError]: null,
         [statePending]: true,
         [obj]: null,
       }
+      : state
+  }
 
-    case actionTypeFailure:
-      return {
+  const failure = (state, action) => {
+    return (action.type === actionTypeFailure)
+      ? {
         ...state,
         [stateError]: action.error,
         [statePending]: false,
       }
+      : state
+  }
 
-    case actionTypeSuccess:
-      return {
+  const success = (state, action) => {
+    return (action.type === actionTypeSuccess)
+      ? {
         ...state,
         [statePending]: false,
         [obj]: action[obj],
       }
-
-    default:
-      return state
-    }
+      : state
   }
 
+  return (state, action) => [
+    req,
+    failure,
+    success,
+  ].reduce((acc, reducer) => reducer(acc, action), state)
+
+}
+
+export const getRequestReducer = (obj, verb) => {
+  const labels = getLabels(obj, verb)
+  const reducer = getCombinedReducer(labels, obj)
   reducer.labels = labels
   reducer.obj = obj
   reducer.verb = verb
@@ -80,39 +90,34 @@ export const getRequestFactories = (obj, verb) => {
   }
 }
 
-export default (REQUESTS) => {
-  const REQUEST_REDUCERS = REQUESTS.map(([obj, verb]) => getRequestReducer(obj, verb))
+export const collectActionTypes = (requestReducers) => {
+  const action = {type: {}}
+  requestReducers.forEach(({
+    obj,
+    verb,
+    labels,
+  }) => {
+    const newObj = action.type[obj] || {}
+    const {
+      actionTypeRequest,
+      actionTypeSuccess,
+      actionTypeFailure,
+    } = labels
+    newObj[verb] = {
+      req: actionTypeRequest,
+      success: actionTypeSuccess,
+      failure: actionTypeFailure,
+    }
+    action.type[obj] = newObj
+  })
+  return action
+}
 
-  const requestsReducer = (state, action) => REQUEST_REDUCERS
-    .reduce((acc, reducer) => reducer(acc, action), state)
-
-  const collectActionTypes = (requestReducers) => {
-    const action = {type: {}}
-    requestReducers.forEach(({
-      obj,
-      verb,
-      labels,
-    }) => {
-      const newObj = action.type[obj] || {}
-      const {
-        actionTypeRequest,
-        actionTypeSuccess,
-        actionTypeFailure,
-      } = labels
-      newObj[verb] = {
-        req: actionTypeRequest,
-        success: actionTypeSuccess,
-        failure: actionTypeFailure,
-      }
-      action.type[obj] = newObj
-    })
-    return action
-  }
-
+export default (requestTuples) => {
   // Each of these will follow a consistent naming convention for actions, states,
   // entities, and reducers.  tl;dr - any ajax calls will have "requesting,"
   // "failure," and "success" events and states.
-  const requestFactories = REQUESTS.reduce((acc, [obj, verb]) => {
+  const requestFactories = requestTuples.reduce((acc, [obj, verb]) => {
     const updatedObj = acc[obj] || {}
     updatedObj[verb] = getRequestFactories(obj, verb)
     return {
@@ -121,9 +126,13 @@ export default (REQUESTS) => {
     }
   }, {})
 
+  const reducers = requestTuples.map(([obj, verb]) => getRequestReducer(obj, verb))
+  const requestsReducer = (state, action) => reducers
+    .reduce((acc, reducer) => reducer(acc, action), state)
+
   return {
     reducer: requestsReducer,
-    action: collectActionTypes(REQUEST_REDUCERS),
+    action: collectActionTypes(reducers),
     factories: requestFactories,
   }
 }
