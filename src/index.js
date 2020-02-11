@@ -2,7 +2,16 @@
 
 const capitalize = (string) => string.replace(/^.{1,1}/, (x) => x.toUpperCase())
 
-const getLabels = (obj, verb) => {
+const assert = (x, err) => {
+  if (!x) {
+    throw new Error(err)
+  }
+}
+
+export const getLabels = (obj, verb) => {
+  assert(obj, 'object is required')
+  assert(verb, 'verb is required')
+
   const cap = capitalize(verb)
   return {
     actionTypeFailure: `${obj}.${verb}.error`,
@@ -13,7 +22,7 @@ const getLabels = (obj, verb) => {
   }
 }
 
-const getRequestReducer = (obj, verb) => {
+export const getRequestReducer = (obj, verb) => {
   const labels = getLabels(obj, verb)
   const {
     statePending,
@@ -58,26 +67,24 @@ const getRequestReducer = (obj, verb) => {
   return reducer
 }
 
+export const getRequestFactories = (obj, verb) => {
+  const {
+    actionTypeFailure,
+    actionTypeRequest,
+    actionTypeSuccess,
+  } = getLabels(obj, verb)
+  return {
+    req: () => ({ type: actionTypeRequest }),
+    success: (result) => ({ type: actionTypeSuccess, [obj]: result }),
+    failure: (error) => ({ type: actionTypeFailure, error }),
+  }
+}
 
 export default (REQUESTS) => {
-
   const REQUEST_REDUCERS = REQUESTS.map(([obj, verb]) => getRequestReducer(obj, verb))
 
   const requestsReducer = (state, action) => REQUEST_REDUCERS
     .reduce((acc, reducer) => reducer(acc, action), state)
-
-  const getRequestFactories = (obj, verb) => {
-    const {
-      actionTypeFailure,
-      actionTypeRequest,
-      actionTypeSuccess,
-    } = getLabels(obj, verb)
-    return {
-      req: () => ({ type: actionTypeRequest }),
-      success: (result) => ({ type: actionTypeSuccess, [obj]: result }),
-      failure: (error) => ({ type: actionTypeFailure, error }),
-    }
-  }
 
   const collectActionTypes = (requestReducers) => {
     const action = {type: {}}
@@ -114,12 +121,9 @@ export default (REQUESTS) => {
     }
   }, {})
 
-
-  const requests = {
+  return {
     reducer: requestsReducer,
     action: collectActionTypes(REQUEST_REDUCERS),
     factories: requestFactories,
   }
-
-  return requests
 }

@@ -13,4 +13,7 @@ You'll typically want to keep track of some state for these things too.
 * the request is complete
 * the error
 
+And you probably want little action factories you can use so actions are always
+created the same way.
+
 This package will help generate these for your with almost no effort.
